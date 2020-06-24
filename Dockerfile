@@ -1,4 +1,4 @@
-from ros:foxy
+from ros:eloquent
 
 # Install mininet
 RUN apt update -qq && \
