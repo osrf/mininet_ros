@@ -1,4 +1,4 @@
-from ros:eloquent
+from ros:foxy
 
 # Install mininet
 RUN apt update -qq && \
@@ -10,7 +10,7 @@ RUN apt update -qq && \
 
 # Install ROS demo package
 RUN apt update -qq && \
-    apt install -y ros-eloquent-demo-nodes-cpp && \
+    apt install -y ros-foxy-demo-nodes-cpp && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
