@@ -8,6 +8,12 @@ RUN apt update -qq && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Install ROS demo package
+RUN apt update -qq && \
+    apt install -y ros-eloquent-demo-nodes-cpp && \
+    apt clean &&  \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Install dev tools
 RUN apt update -qq && \
     apt install -y tmux vim && \
