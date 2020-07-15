@@ -86,7 +86,7 @@ if __name__ == '__main__':
     parser.add_argument(
         'ros_setup_bash',
         nargs='?',
-        default='/opt/ros/eloquent/setup.bash',
+        default='/opt/ros/foxy/setup.bash',
         help='path to a setup.bash file for a ROS installation',
     )
     parser.add_argument(
