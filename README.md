@@ -24,24 +24,32 @@ Vanilla mininet demo:
 
 ROS talker/listener demo:
 
-    python3 demos/mininet_ros_demo_,py
+    python3 demos/mininet_ros_demo.py
 
 
 ## Run demos without Docker
 
-
 1. Install mininet
+  - Ubuntu 18.04
 
-    sudo apt install mininet
+        sudo apt install mininet
+        sudo apt install openvswitch-testcontroller
+        pip3 install git+https://github.com/mininet/mininet.git
 
-2. Install `openvswitch-testcontroller`
+  - Ubuntu 20.04
 
-    sudo apt install openvswitch-testcontroller
+        # Install mininet from source (use at own risk)
+        git clone http://github.com/mininet/mininet.git
+        cd mininet
+        util/install.sh -fnv
 
-3. For Python 3 support, also install mininet from Git:
+2. Clone this repository
 
-    pip3 install git+https://github.com/mininet/mininet.git
+    git clone https://github.com/jacobperron/mininet_ros_demos.git
 
+3. Run the demos with Python 3, for example
+
+    python3 mininet_ros_demos/demos/mininet_ros_demo.py
 
 #### Troubleshooting
 
