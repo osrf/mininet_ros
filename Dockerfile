@@ -1,10 +1,14 @@
 from ros:foxy
 
+WORKDIR /root
+
 # Install mininet
+# Build from source since upstream version in Ubuntu is not working
 RUN apt update -qq && \
-    apt install -y mininet openvswitch-testcontroller iproute2 iputils-ping && \
-    apt install -y python3-pip && \
-    pip3 install git+https://github.com/mininet/mininet.git && \
+    apt install -y git iputils-ping && \
+    git clone http://github.com/mininet/mininet.git && \
+    cd mininet && \
+    util/install.sh -fnv && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -19,8 +23,6 @@ RUN apt update -qq && \
     apt install -y tmux vim && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-WORKDIR /root
 
 COPY mininet_demo.py .
 COPY mininet_ros_demo.py .
