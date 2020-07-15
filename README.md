@@ -20,11 +20,11 @@ Run the demos with `python3`.
 
 Vanilla mininet demo:
 
-    python3 mininet_demo.py
+    python3 demos/mininet_demo.py
 
 ROS talker/listener demo:
 
-    python3 mininet_ros_demo_,py
+    python3 demos/mininet_ros_demo_,py
 
 
 ## Run demos without Docker

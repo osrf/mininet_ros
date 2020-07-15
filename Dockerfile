@@ -22,8 +22,7 @@ RUN apt update -qq && \
 
 WORKDIR /root
 
-COPY mininet_demo.py .
-COPY mininet_ros_demo.py .
+COPY demos demos
 
 COPY entrypoint.sh .
 
