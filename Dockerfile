@@ -24,8 +24,7 @@ RUN apt update -qq && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY mininet_demo.py .
-COPY mininet_ros_demo.py .
+COPY demos demos
 
 COPY entrypoint.sh .
 
