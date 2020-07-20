@@ -1,49 +1,32 @@
 import time
 from typing import List
 
-from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
 from mininet.log import setLogLevel
 
-
-class TwoNodesOneSwitchTopo(Topo):
-    """Single switch connected to two hosts."""
-    def build(self):
-        switch = self.addSwitch('s1')
-        h1 = self.addHost('h1')
-        h2 = self.addHost('h2')
-        self.addLink(h1, switch)
-        self.addLink(h2, switch)
+from .host_options import HostOptions
+from .topo import ManyHostsOneSwitchTopo
 
 
 def emulate_ros_network(
     *,
-    ros_setup_bash,
-    host_1_cmd: List[str],
-    host_2_cmd: List[str],
+    host_options: List[HostOptions],
     duration=5.0,
-    ros_domain_id=0
 ):
     """
     Create an emulated network for running ROS nodes.
 
-    :param ros_setup_bash: Path to the setup.bash file of the ROS installation.
-    :param host_1_cmd: The command to run on the first emulated host.
-    :param host_2_cmd: The command to run on the second emulated host.
-    :param duration: How long to let the commands run.
-    :param ros_domain_id: The value to assign to the ROS_DOMAIN_ID environment variable.
+    :param hosts_options: A list of host options.
+       The length of the list determines the number of hosts in the emulated
+       network.
+    :param duration: How long to let the commands run on each host.
     """
     # Tell mininet to print useful information
     setLogLevel('info')
 
-    ros_setup_bash = str(ros_setup_bash)
-    preamble = ['source', ros_setup_bash, '&&', 'export', f'ROS_DOMAIN_ID={ros_domain_id}']
-    host_1_cmd_with_preamble = preamble + ['&&'] + host_1_cmd
-    host_2_cmd_with_preamble = preamble + ['&&'] + host_2_cmd
-
     # Create the topology and network
-    topo = TwoNodesOneSwitchTopo()
+    topo = ManyHostsOneSwitchTopo(num_hosts=len(host_options))
     net = Mininet(topo)
     net.start()
     print("Dumping host connections")
@@ -52,16 +35,10 @@ def emulate_ros_network(
     print("Testing network connectivity")
     net.pingAll()
 
-    host_1 = net.hosts[0]
-    host_2 = net.hosts[1]
-
-    # Run command on the first host
-    print(f"Running command on host 1: {' '.join(host_1_cmd_with_preamble)}")
-    host_1.sendCmd(host_1_cmd_with_preamble)
-
-    # Run command on the second host
-    print(f"Running command on host 2: {' '.join(host_2_cmd_with_preamble)}")
-    host_2.sendCmd(host_2_cmd_with_preamble)
+    # Run commands for each host
+    for host, options in zip(net.hosts, host_options):
+        print(f"Running command on host '{host.name}': {' '.join(options.command)}")
+        host.sendCmd(options.command)
 
     # Let commands run for some duration
     # TODO(jacobperron): or until they have terminated
@@ -70,13 +47,12 @@ def emulate_ros_network(
         time.sleep(0.1)
 
     # Interrupt commands
-    host_1.sendInt()
-    host_2.sendInt()
+    for host in net.hosts:
+        host.sendInt()
 
     # Wait for output
-    print('Host 1 output:')
-    host_1.waitOutput(verbose=True)
-    print('Host 2 output:')
-    host_2.waitOutput(verbose=True)
+    for host in net.hosts:
+        print(f"Host '{host.name}' output:")
+        host.waitOutput(verbose=True)
 
     net.stop()

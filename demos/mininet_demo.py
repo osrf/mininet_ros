@@ -1,12 +1,12 @@
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
 
-from mininet_ros.emulate_network import TwoNodesOneSwitchTopo
+from mininet_ros.topo import ManyHostsOneSwitchTopo
 
 
 def main():
     """Create and test the network."""
-    topo = TwoNodesOneSwitchTopo()
+    topo = ManyHostsOneSwitchTopo(num_hosts=2)
     net = Mininet(topo)
     net.start()
     print("Dumping host connections")

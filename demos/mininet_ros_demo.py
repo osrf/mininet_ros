@@ -1,6 +1,7 @@
 import argparse
 
 from mininet_ros.emulate_network import emulate_ros_network
+from mininet_ros.host_options import HostOptions
 
 
 if __name__ == '__main__':
@@ -26,10 +27,20 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
+    host_options = [
+        HostOptions(
+            command=['ros2', 'run', 'demo_nodes_cpp', 'talker'],
+            ros_setup_bash=args.ros_setup_bash,
+            ros_domain_id=args.ros_domain_id
+        ),
+        HostOptions(
+            command=['ros2', 'run', 'demo_nodes_cpp', 'listener'],
+            ros_setup_bash=args.ros_setup_bash,
+            ros_domain_id=args.ros_domain_id
+        ),
+    ]
+
     emulate_ros_network(
-        ros_setup_bash=args.ros_setup_bash,
-        host_1_cmd=['ros2', 'run', 'demo_nodes_cpp', 'talker'],
-        host_2_cmd=['ros2', 'run', 'demo_nodes_cpp', 'listener'],
+        host_options=host_options,
         duration=args.duration,
-        ros_domain_id=args.ros_domain_id,
     )
