@@ -12,6 +12,12 @@ RUN apt update -qq && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Install more RMW implementations
+RUN apt update -qq && \
+    RTI_NC_LICENSE_ACCEPTED=yes apt install -y ros-${ROS_DISTRO}-rmw-cyclonedds-cpp ros-${ROS_DISTRO}-rmw-connext-cpp && \
+    apt clean &&  \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Install ROS 2 performance_test package
 RUN apt update -qq && \
     apt install -y default-jre && \
