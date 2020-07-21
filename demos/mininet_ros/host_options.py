@@ -12,6 +12,7 @@ class HostOptions:
         command: List[str],
         ros_setup_bash: Optional[os.PathLike] = None,
         ros_domain_id: Optional[int] = None,
+        rmw_implementation: Optional[str] = None,
     ):
         """
         Constructor.
@@ -21,12 +22,16 @@ class HostOptions:
            installation to use.
         :param ros_domain_id: The value to assign to the ROS_DOMAIN_ID
            environment variable.
+        :param rmw_implementation: The identifier for the RMW implementation to use.
+           Sets the RMW_IMPLEMENTATION environment variable to this value.
         """
         self.__command = []
         if ros_setup_bash is not None:
             self.__command += ['source', str(ros_setup_bash)]
         if ros_domain_id is not None:
             self.__command += ['&&', 'export', f'ROS_DOMAIN_ID={ros_domain_id}']
+        if rmw_implementation is not None:
+            self.__command += ['&&', 'export', f'RMW_IMPLEMENTATION={rmw_implementation}']
 
         if self.__command:
             self.__command += ['&&']
@@ -35,4 +40,3 @@ class HostOptions:
     @property
     def command(self):
         return self.__command
-

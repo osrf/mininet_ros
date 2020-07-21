@@ -25,18 +25,26 @@ if __name__ == '__main__':
         type=int,
         help='ROS domain ID',
     )
+    parser.add_argument(
+        '--rmw-implementation',
+        default=None,
+        type=str,
+        help='RWM implementation identifier',
+    )
     args = parser.parse_args()
 
     host_options = [
         HostOptions(
             command=['ros2', 'run', 'demo_nodes_cpp', 'talker'],
             ros_setup_bash=args.ros_setup_bash,
-            ros_domain_id=args.ros_domain_id
+            ros_domain_id=args.ros_domain_id,
+            rmw_implementation=args.rmw_implementation,
         ),
         HostOptions(
             command=['ros2', 'run', 'demo_nodes_cpp', 'listener'],
             ros_setup_bash=args.ros_setup_bash,
-            ros_domain_id=args.ros_domain_id
+            ros_domain_id=args.ros_domain_id,
+            rmw_implementation=args.rmw_implementation,
         ),
     ]
 
