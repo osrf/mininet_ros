@@ -1,6 +1,8 @@
+from functools import partial
 import time
 from typing import List
 
+from mininet.link import TCLink
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
 from mininet.log import setLogLevel
@@ -21,6 +23,9 @@ def emulate_ros_network(
     host_options: List[HostOptions],
     duration=None,
     verbose=False,
+    bandwidth=None,
+    loss=0,
+    delay=0,
 ):
     """
     Create an emulated network for running ROS nodes.
@@ -32,13 +37,18 @@ def emulate_ros_network(
       If None, then run the commands until they complete.
     :param verbose: Prints interleaved command output from all hosts to the
       screen.
+    :param bandwidth: Bandwidth in Mb/s between each pair of hosts.
+      None for no limit.
+    :param loss: Packet loss percentage between each pair of hosts (0-100).
+    :param delay: Adds delay to traffic between each pair of hosts (milliseconds).
     """
     # Tell mininet to print useful information
     setLogLevel('info')
 
     # Create the topology and network
     topo = ManyHostsOneSwitchTopo(num_hosts=len(host_options))
-    net = Mininet(topo)
+    link = partial(TCLink, bw=bandwidth, loss=loss, delay=f'{delay}ms')
+    net = Mininet(topo=topo, link=link)
     net.start()
     print("Dumping host connections")
     dumpNodeConnections(net.hosts)
