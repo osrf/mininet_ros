@@ -26,6 +26,11 @@ ROS talker/listener demo:
 
     python3 demos/mininet_ros_demo.py
 
+ROS performance test demo:
+
+    # Provide --help option for usage
+    python3 demos/mininet_ros_perf_demo.py
+
 
 ## Run demos without Docker
 
