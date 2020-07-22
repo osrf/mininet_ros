@@ -83,8 +83,7 @@ def emulate_ros_network(
         if duration is not None and (time.time() - start_time) >= duration:
             print('Timed out, interrupting commands')
             for host in net.hosts:
-                if host.waiting:
-                    host.sendInt()
+                host.sendInt()
             interrupted = True
 
     for host, output in zip(net.hosts, hosts_output):
