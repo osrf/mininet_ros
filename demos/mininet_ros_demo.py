@@ -31,6 +31,11 @@ if __name__ == '__main__':
         type=str,
         help='RWM implementation identifier',
     )
+    parser.add_argument(
+        '--localhost-only',
+        action='store_true',
+        help='Use localhost only',
+    )
     args = parser.parse_args()
 
     host_options = [
@@ -39,12 +44,14 @@ if __name__ == '__main__':
             ros_setup_bash=args.ros_setup_bash,
             ros_domain_id=args.ros_domain_id,
             rmw_implementation=args.rmw_implementation,
+            localhost_only=args.localhost_only,
         ),
         HostOptions(
             command=['ros2', 'run', 'demo_nodes_cpp', 'listener'],
             ros_setup_bash=args.ros_setup_bash,
             ros_domain_id=args.ros_domain_id,
             rmw_implementation=args.rmw_implementation,
+            localhost_only=args.localhost_only,
         ),
     ]
 
