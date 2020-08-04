@@ -13,6 +13,7 @@ class HostOptions:
         ros_setup_bash: Optional[os.PathLike] = None,
         ros_domain_id: Optional[int] = None,
         rmw_implementation: Optional[str] = None,
+        localhost_only: bool = False,
     ):
         """
         Constructor.
@@ -32,6 +33,8 @@ class HostOptions:
             self.__command += ['&&', 'export', f'ROS_DOMAIN_ID={ros_domain_id}']
         if rmw_implementation is not None:
             self.__command += ['&&', 'export', f'RMW_IMPLEMENTATION={rmw_implementation}']
+        if localhost_only:
+            self.__command += ['&&', 'export', f'ROS_LOCALHOST_ONLY=1']
 
         if self.__command:
             self.__command += ['&&']
