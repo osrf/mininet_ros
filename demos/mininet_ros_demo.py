@@ -36,6 +36,11 @@ if __name__ == '__main__':
         action='store_true',
         help='Use localhost only',
     )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Verbose output',
+    )
     args = parser.parse_args()
 
     host_options = [
@@ -58,4 +63,5 @@ if __name__ == '__main__':
     emulate_ros_network(
         host_options=host_options,
         duration=args.duration,
+        verbose=args.verbose
     )
