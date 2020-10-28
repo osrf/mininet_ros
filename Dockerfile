@@ -1,4 +1,4 @@
-from ros:foxy
+from ros:rolling
 
 WORKDIR /root
 
@@ -24,7 +24,8 @@ RUN apt update -qq && \
     mkdir -p perf_test_ws/src && \
     cd perf_test_ws && \
     git clone https://github.com/ros2/performance_test.git src/performance_test && \
-    . /opt/ros/foxy/setup.sh && \
+    git clone https://github.com/ros2/buildfarm_perf_tests.git src/buildfarm_perf_tests && \
+    . /opt/ros/rolling/setup.sh && \
     rosdep install -y --from-paths src --ignore-src && \
     colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     apt clean &&  \
@@ -32,7 +33,13 @@ RUN apt update -qq && \
 
 # Install ROS demo package
 RUN apt update -qq && \
-    apt install -y ros-foxy-demo-nodes-cpp && \
+    apt install -y ros-rolling-demo-nodes-cpp && \
+    apt clean &&  \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install additional libraries for report generation
+RUN apt update -qq && \
+    apt install -y python3-markdown && \
     apt clean &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
