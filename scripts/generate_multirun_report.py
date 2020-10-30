@@ -1,12 +1,12 @@
 import argparse
 import os
-import sys
 
 import markdown
-import pandas
 
 from plotting.performance import collect_experiments
-from plotting.performance import generate_averaged_plot
+from plotting.performance import generate_averaged_latency_plot
+from plotting.performance import generate_averaged_resource_plot
+from plotting.performance import generate_averaged_sent_received_plot
 
 
 def generate_loss_plot_pair(df, output_dir, plot_output_prefix):
@@ -31,18 +31,28 @@ def generate_html_table_for_single_config(df, html_table_pairs_by_directory):
     rmw_implementation = get_one_item(df, 'rmw_implementation')
     async_pub = get_one_item(df, 'async_pub')
     headers = []
-    images = []
+    sent_received_images = []
+    latency_images = []
+    resource_images = []
     # Use this set to avoid visiting duplicates, using a set on the sorted values would unsort them.
     visited_directories = set()
     for directory in df.sort_values('loss')['directory']:
         if directory in visited_directories:
             continue
         visited_directories.add(directory)
-        h, i = html_table_pairs_by_directory[directory]
+        h, sent_received_i = html_table_pairs_by_directory[directory]['sent_received']
+        latency_h, latency_i = html_table_pairs_by_directory[directory]['latency']
+        assert h == latency_h
+        resource_h, resource_i = html_table_pairs_by_directory[directory]['resource']
+        assert h == resource_h
         headers.append(h)
-        images.append(i)
+        sent_received_images.append(sent_received_i)
+        latency_images.append(latency_i)
+        resource_images.append(resource_i)
     headers = '\n'.join(headers)
-    images = '\n'.join(images)
+    sent_received_images = '\n'.join(sent_received_images)
+    latency_images = '\n'.join(latency_images)
+    resource_images = '\n'.join(resource_images)
 
     snippet = f"""\
 #### {rmw_implementation} {async_pub}
@@ -52,7 +62,13 @@ def generate_html_table_for_single_config(df, html_table_pairs_by_directory):
 {headers}
   </tr>
   <tr>
-{images}
+{sent_received_images}
+  </tr>
+  <tr>
+{latency_images}
+  </tr>
+  <tr>
+{resource_images}
   </tr>
 </table>
 
@@ -73,11 +89,19 @@ def generate_markdown_table_for_single_config(df, loss_plot_pairs_by_directory):
         if directory in visited_directories:
             continue
         visited_directories.add(directory)
-        loss, img = loss_plot_pairs_by_directory[directory]
+        loss, sent_received_img = loss_plot_pairs_by_directory[directory]['sent_received']
+        latency_loss, latency_img = loss_plot_pairs_by_directory[directory]['latency']
+        assert loss == latency_loss
+        resource_loss, resource_img = loss_plot_pairs_by_directory[directory]['resource']
+        assert loss == resource_loss
         md += f"""\
 ##### Packet Loss: {loss}%
 
-![]({img + '.png'})
+![]({sent_received_img + '.png'})
+
+![]({latency_img + '.png'})
+
+![]({resource_img + '.png'})
 
 """
     return md
@@ -165,14 +189,34 @@ def generate_report(log_dir, output_dir):
     for directory in directories_set:
         print(f'=== Generating plot for experiment in directory: {directory}')
         directory_experiments_df = experiements_df[experiements_df.directory == directory]
-        plot_output_prefix = generate_averaged_plot(directory_experiments_df, output_dir)
-        loss_plot_pair = generate_loss_plot_pair(
+        sent_received_plot_output_prefix = generate_averaged_sent_received_plot(directory_experiments_df, output_dir)
+        sent_received_loss_plot_pair = generate_loss_plot_pair(
             directory_experiments_df,
             output_dir,
-            plot_output_prefix)
-        loss_plot_pairs_by_directory[directory] = loss_plot_pair
-        html_table_pair = generate_averaged_plot_html_table_pair(loss_plot_pair)
-        html_table_pairs_by_directory[directory] = html_table_pair
+            sent_received_plot_output_prefix)
+        latency_plot_output_prefix = generate_averaged_latency_plot(directory_experiments_df, output_dir)
+        latency_loss_plot_pair = generate_loss_plot_pair(
+            directory_experiments_df,
+            output_dir,
+            latency_plot_output_prefix)
+        resource_plot_output_prefix = generate_averaged_resource_plot(directory_experiments_df, output_dir)
+        resource_loss_plot_pair = generate_loss_plot_pair(
+            directory_experiments_df,
+            output_dir,
+            resource_plot_output_prefix)
+        loss_plot_pairs_by_directory[directory] = {
+            'sent_received': sent_received_loss_plot_pair,
+            'latency': latency_loss_plot_pair,
+            'resource': resource_loss_plot_pair,
+        }
+        sent_received_html_table_pair = generate_averaged_plot_html_table_pair(sent_received_loss_plot_pair)
+        latency_html_table_pair = generate_averaged_plot_html_table_pair(latency_loss_plot_pair)
+        resource_html_table_pair = generate_averaged_plot_html_table_pair(resource_loss_plot_pair)
+        html_table_pairs_by_directory[directory] = {
+            'sent_received': sent_received_html_table_pair,
+            'latency': latency_html_table_pair,
+            'resource': resource_html_table_pair,
+        }
 
     # Generate Markdown comparing packet losses across various configurations and middlewares.
     rmw_implementations_md = markdown_for_rmw_implementations(experiements_df)

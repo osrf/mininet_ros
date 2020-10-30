@@ -6,9 +6,10 @@ from glob import glob
 
 import pandas
 import matplotlib.pyplot as plt
+import numpy
 
 
-def generate_averaged_plot(df, output_dir, *, ax=None):
+def generate_averaged_sent_received_plot(df, output_dir, *, ax=None):
     if ax is None:
         fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.set_xlabel('Time in Seconds')
@@ -59,6 +60,134 @@ def generate_averaged_plot(df, output_dir, *, ax=None):
         if not os.path.exists(local_output_dir):
             os.makedirs(local_output_dir)
         plot_output_prefix = os.path.join(local_output_dir, 'average_sent_received')
+        ax.get_figure().savefig(plot_output_prefix + '.svg', bbox_inches='tight')
+        ax.get_figure().savefig(plot_output_prefix + '.png', bbox_inches='tight')
+
+        plt.close()
+
+        return plot_output_prefix
+
+
+def generate_averaged_latency_plot(df, output_dir, *, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+    ax.set_xlabel('Time in Seconds')
+    ax.set_ylabel('Latency in Milliseconds')
+
+    latency_means = []
+    latency_variances = []
+
+    for index, row in df.iterrows():
+        latency_mean_with_inf = [
+            (numpy.inf if numpy.isinf(lmax) else lmean)
+            for (lmean, lmax) in row['sub_log'][['latency_mean (ms)', 'latency_max (ms)']].values
+        ]
+        ax.plot(latency_mean_with_inf, color='red', alpha=0.2)
+        latency_means.append(latency_mean_with_inf)
+        latency_variance_with_inf = [
+            (numpy.inf if numpy.isinf(lmax) else lvar)
+            for (lvar, lmax) in row['sub_log'][['latency_variance (ms)', 'latency_max (ms)']].values
+        ]
+        ax.plot(latency_variance_with_inf, color='purple', alpha=0.2)
+        latency_variances.append(latency_variance_with_inf)
+
+    number_of_runs = len(df)
+
+    latency_means_mean = pandas.DataFrame(latency_means).mean(axis=0)
+    latency_means_mean_mean = latency_means_mean.mean()
+    ax.plot(
+        latency_means_mean, color='red',
+        label=f'Average Latency Mean N={number_of_runs} ({latency_means_mean_mean:1.1f})')
+    ax.axhline(y=latency_means_mean_mean, color='red', linestyle='--')
+
+    latency_variances_mean = pandas.DataFrame(latency_variances).mean(axis=0)
+    latency_variances_mean_mean = latency_variances_mean.mean()
+    ax.plot(
+        latency_variances_mean, color='purple',
+        label=f'Average Latency Variance N={number_of_runs} ({latency_variances_mean_mean:1.1f})')
+    ax.axhline(y=latency_variances_mean_mean, color='purple', linestyle='--')
+
+    ax.legend()
+
+    e = df.iloc[0]
+    if output_dir is not None:
+        title = \
+            f"{e['message_type']}@{e['message_rate']}Hz 1 Pub to 1 Sub, multi-processes, single machine\n" + \
+            f"{e['rmw_implementation']} {e['async_pub']}, {e['reliability']}, {e['durability']}, " + \
+            ('keep_all' if e['history_kind'] == 'keep_all' else f"keep_last@{e['history_depth']}") + '\n' + \
+            f"bandwidth: {e['bandwidth']}Mbps, packet loss: {e['loss']}%, delay: {e['delay']}ms"
+        ax.set_title(title)
+
+    ax.set_xlim((1, len(e['sub_log']['latency_mean (ms)']) + 1))
+
+    if output_dir is not None:
+        local_output_dir = os.path.join(output_dir, os.path.basename(e['directory']))
+        if not os.path.exists(local_output_dir):
+            os.makedirs(local_output_dir)
+        plot_output_prefix = os.path.join(local_output_dir, 'average_latency')
+        ax.get_figure().savefig(plot_output_prefix + '.svg', bbox_inches='tight')
+        ax.get_figure().savefig(plot_output_prefix + '.png', bbox_inches='tight')
+
+        plt.close()
+
+        return plot_output_prefix
+
+
+def generate_averaged_resource_plot(df, output_dir, *, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+    ax.set_xlabel('Time in Seconds')
+    ax.set_ylabel('Publisher CPU Utilization Percentage')
+    ax2 = ax.twinx()
+    ax2.set_ylabel('Publisher Memory Usage in Kilobytes')
+
+    cpu_datasets = []
+    maxrss_datasets = []
+
+    for index, row in df.iterrows():
+        # ax.plot(row['pub_log']['cpu_usage (%)'], color='green', alpha=0.2)
+        cpu_datasets.append(row['pub_log']['cpu_usage (%)'])
+        ax.axhline(y=row['pub_log']['cpu_usage (%)'].mean(), color='green', linestyle='--', alpha=0.2)
+
+        ax2.plot(row['pub_log']['ru_maxrss'], color='magenta', alpha=0.2)
+        ax2.axhline(y=row['pub_log']['ru_maxrss'].mean(), color='magenta', linestyle='--', alpha=0.2)
+        maxrss_datasets.append(row['pub_log']['ru_maxrss'])
+
+    number_of_runs = len(df)
+
+    cpu_mean = pandas.DataFrame(cpu_datasets).mean(axis=0)
+    cpu_mean_mean = cpu_mean.mean()
+    cpu_line = ax.plot(
+        cpu_mean, color='green',
+        label=f'Average CPU Utilization N={number_of_runs} ({cpu_mean_mean:1.1f} %)')
+    ax.axhline(y=cpu_mean_mean, color='green', linestyle='--')
+
+    maxrss_mean = pandas.DataFrame(maxrss_datasets).mean(axis=0)
+    maxrss_mean_mean = maxrss_mean.mean()
+    maxrss_line = ax2.plot(
+        maxrss_mean, color='magenta',
+        label=f'Average Memory Usage (ru_maxrss) N={number_of_runs} ({maxrss_mean_mean:1.1f} kb)')
+    ax2.axhline(y=maxrss_mean_mean, color='magenta', linestyle='--')
+
+    lines = cpu_line + maxrss_line
+    ax.legend(lines, [line.get_label() for line in lines])
+
+    e = df.iloc[0]
+    if output_dir is not None:
+        title = \
+            f"{e['message_type']}@{e['message_rate']}Hz 1 Pub to 1 Sub, multi-processes, single machine\n" + \
+            f"{e['rmw_implementation']} {e['async_pub']}, {e['reliability']}, {e['durability']}, " + \
+            ('keep_all' if e['history_kind'] == 'keep_all' else f"keep_last@{e['history_depth']}") + '\n' + \
+            f"bandwidth: {e['bandwidth']}Mbps, packet loss: {e['loss']}%, delay: {e['delay']}ms"
+        ax.set_title(title)
+
+    ax.set_xlim((1, len(e['pub_log']['latency_mean (ms)']) + 1))
+
+    if output_dir is not None:
+        local_output_dir = os.path.join(output_dir, os.path.basename(e['directory']))
+        if not os.path.exists(local_output_dir):
+            os.makedirs(local_output_dir)
+        plot_output_prefix = os.path.join(local_output_dir, 'resource')
         ax.get_figure().savefig(plot_output_prefix + '.svg', bbox_inches='tight')
         ax.get_figure().savefig(plot_output_prefix + '.png', bbox_inches='tight')
 
