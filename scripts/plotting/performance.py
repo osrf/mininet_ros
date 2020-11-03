@@ -14,6 +14,7 @@ def generate_averaged_sent_received_plot(df, output_dir, *, ax=None):
         fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.set_xlabel('Time in Seconds')
     ax.set_ylabel('Number of Messages')
+    ax.grid(which='both')
 
     pub_datasets = []
     sub_datasets = []
@@ -73,6 +74,7 @@ def generate_averaged_latency_plot(df, output_dir, *, ax=None):
         fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.set_xlabel('Time in Seconds')
     ax.set_ylabel('Latency in Milliseconds')
+    ax.grid(which='both')
 
     latency_means = []
     latency_variances = []
@@ -138,8 +140,10 @@ def generate_averaged_resource_plot(df, output_dir, *, ax=None):
         fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.set_xlabel('Time in Seconds')
     ax.set_ylabel('Publisher CPU Utilization Percentage')
+    ax.grid(which='both')
     ax2 = ax.twinx()
     ax2.set_ylabel('Publisher Memory Usage in Kilobytes')
+    ax2.grid(which='both')
 
     cpu_datasets = []
     maxrss_datasets = []
